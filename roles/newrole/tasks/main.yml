@@ -1,0 +1,5 @@
+---
+# tasks file for newrole
+- name: Print new role message
+  ansible.builtin.debug:
+    msg: "This is a new role"

@@ -1,0 +1,10 @@
+---
+# tasks file for helloworld
+
+- name: First Task
+  ansible.builtin.debug:
+    msg: "This is a simple role to print hello world message"
+
+- name: Print hello world
+  ansible.builtin.debug:
+    msg: "Hello World"

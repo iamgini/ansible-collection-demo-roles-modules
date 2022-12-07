@@ -1,0 +1,6 @@
+---
+# tasks file for systeminfo
+
+- name: Print System Information
+  ansible.builtin.debug:
+    msg: "{{ ansible_facts }}"
