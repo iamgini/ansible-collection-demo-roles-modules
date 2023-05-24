@@ -11,7 +11,7 @@ ansible-galaxy collection install ginigangadharan.collection_demo_roles_modules
 ## Testing Modules
 
 ```shell
-$ ansible-playbook playbooks/3-hello-python yaml
+$ ansible-playbook playbooks/3-hello-python.yaml
 ```
 
 ## Sample Playbooks

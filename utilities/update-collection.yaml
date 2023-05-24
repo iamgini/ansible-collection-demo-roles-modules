@@ -13,10 +13,10 @@
 
   tasks:
 
-    - name: Ensure the ANSIBLE_GALAXY_TOKEN environment variable is set.
-      fail:
-        msg: ANSIBLE_GALAXY_TOKEN is not set.
-      when: "lookup('env','ANSIBLE_GALAXY_TOKEN') == ''"
+    # - name: Ensure the ANSIBLE_GALAXY_TOKEN environment variable is set.
+    #   fail:
+    #     msg: ANSIBLE_GALAXY_TOKEN is not set.
+    #   when: "lookup('env','ANSIBLE_GALAXY_TOKEN') == ''"
 
     - name: Set API server
       ansible.builtin.set_fact:
