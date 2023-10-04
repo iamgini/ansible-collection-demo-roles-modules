@@ -20,7 +20,7 @@ options:
         type: string
 
 author:
-    - Gineesh Madapparambath (@ginigangadharan)
+    - Gineesh Madapparambath (@iamgini)
 '''
 
 EXAMPLES = '''

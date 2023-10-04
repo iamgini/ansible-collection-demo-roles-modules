@@ -6,4 +6,4 @@
     remote_user_password: 'mypassword'
     #remote_user_public_key: '<public key string>'
   roles:
-    - ginigangadharan.setup_ansible_user
+    - iamgini.setup_ansible_user

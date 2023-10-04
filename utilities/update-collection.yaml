@@ -9,7 +9,7 @@
 
     # input the private automation hub url
     # server: private automation hub 
-    # eg: https://automationhub22-1.lab.local/api/galaxy/content/published/
+    # eg: https://pah.lab.local/api/galaxy/content/published/
 
   tasks:
 

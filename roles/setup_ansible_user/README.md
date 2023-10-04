@@ -38,7 +38,7 @@ Example Playbook
     remote_user_password: 'mypassword'
     remote_user_public_key: '<public key string>'
   roles:
-    - { role: ginigangadharan.setup_ansible_user }
+    - { role: iamgini.setup_ansible_user }
 
 ```
 
