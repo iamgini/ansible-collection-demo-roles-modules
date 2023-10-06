@@ -1,11 +1,14 @@
 ---
-- hosts: localhost
+- name: Publish the collection to Ansible Galaxy or Automation Hub
+  hosts: localhost
   connection: local
   gather_facts: false
   vars:
-    tag: ''
+    validate_certs: true
     collection_namespace: "{{ (lookup('file','../galaxy.yml') | from_yaml).namespace }}"
     collection_name: "{{ (lookup('file','../galaxy.yml') | from_yaml).name }}"
+    galaxy_api_server: "--server {{ server | default('https://galaxy.ansible.com') }}"
+    galaxy_api_for_collection: 'https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index'
 
     # input the private automation hub url
     # server: private automation hub 
@@ -18,30 +21,70 @@
     #     msg: ANSIBLE_GALAXY_TOKEN is not set.
     #   when: "lookup('env','ANSIBLE_GALAXY_TOKEN') == ''"
 
-    - name: Set API server
-      ansible.builtin.set_fact:
-        galaxy_api_server: "--server {{ server }}"
-      when: server is defined
+    # - name: Set API server
+    #   ansible.builtin.set_fact:
+    #     galaxy_api_server: "--server {{ server }}"
+    #   when: server is defined
+    - name: Fetch latest version from Galaxy if version_tag is not provided
+      when: not version_tag is defined
+      block:
+        - name: Fetch current Collection Version
+          # no_log: true
+          ansible.builtin.uri:
+            url: "{{ galaxy_api_for_collection }}/{{ collection_namespace }}/{{ collection_name }}/"
+            body_format: json
+            method: GET
+            validate_certs: "{{ validate_certs }}"
+            use_proxy: false
+            force_basic_auth: true
+            headers:
+              "Content-Type": "application/json"
+              "Authorization": "{{ lookup('env', 'ANSIBLE_GALAXY_TOKEN') }}"
+              # "accept: application/json"
+            return_content: true
+            status_code:
+              - 200
+          register: galaxy_api_result
 
-    - name: Templating galaxy.yml file.
-      template:
+        - name: Get the version
+          ansible.builtin.set_fact:
+            current_version: "{{ galaxy_api_result.json.highest_version.version | split('.') }}"
+
+        - name: Set new version automatically
+          ansible.builtin.set_fact:
+            version_tag: "{{ current_version[0] }}.{{ current_version[1] | int + 1 }}.0"
+
+    - name: Templating galaxy.yml file
+      ansible.builtin.template:
         src: templates/galaxy.yaml.j2
         dest: ../galaxy.yml
 
-    - name: Build the collection.
-      command: >
+    - name: Build the collection
+      ansible.builtin.shell: |
         ansible-galaxy collection build --force
+      args:
+        chdir: ../
+
+    - name: Publish the collection to Galaxy/Hub
+      ansible.builtin.shell: |
+        ansible-galaxy collection publish ./{{ collection_namespace }}-{{ collection_name }}-{{ version_tag }}.tar.gz --api-key $ANSIBLE_GALAXY_TOKEN --ignore-certs {{ galaxy_api_server | default('') }}
         chdir=../
-    - name: Publish the collection.
-      command: >
-        ansible-galaxy collection publish ./{{ collection_namespace }}-{{ collection_name }}-{{ tag }}.tar.gz --api-key $ANSIBLE_GALAXY_TOKEN --ignore-certs {{ galaxy_api_server | default('') }}
-        chdir=../
+      args:
+        chdir: ../
       register: galaxy_publish_status
+
+
+    # - name: Publish the collection.
+    #   command: >
+    #     ansible-galaxy collection publish ./{{ collection_namespace }}-{{ collection_name }}-{{ version_tag }}.tar.gz --api-key $ANSIBLE_GALAXY_TOKEN --ignore-certs {{ galaxy_api_server | default('') }}
+    #     chdir=../
+    #   register: galaxy_publish_status
+      
     - name: Galaxy Publish Status
       debug:
         msg: "{{ galaxy_publish_status }}"
         
     - name: Remove Archive file
       ansible.builtin.file:
-        path: ./{{ collection_namespace }}-{{ collection_name }}-{{ tag }}.tar.gz
+        path: ./{{ collection_namespace }}-{{ collection_name }}-{{ version_tag }}.tar.gz
         state: absent
